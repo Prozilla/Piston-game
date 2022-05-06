@@ -31,7 +31,8 @@ public class MouseListener implements MouseMotionListener {
 
 	@Override
 	public void mouseDragged(MouseEvent event) {
-
+		// System.out.println("Drag");
+		// gamePanel.handleClick();
 	}
 
 	@Override

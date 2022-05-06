@@ -76,7 +76,7 @@ public class Piston extends Interactible {
 	}
 
 	public void moveHead() {
-		Movable movable = getMoveable(state == "retracting" ? 2 : 1);
+		Movable movable = getMovable(state == "retracting" && sticky ? 2 : 1);
 
 		if (headOffset < 1 && state == "extending") {
 			headOffset += gamePanel.deltaTime / (animationDuration / 2 * gamePanel.fps);
@@ -91,41 +91,48 @@ public class Piston extends Interactible {
 			}
 		} else {
 			if (state != "retracting") {
-				// Only runs one time, when pistons starts retracting
+				// Only runs once, when pistons starts retracting
 				state = "retracting";
 
 				if (movable != null) {
-					movable.x += headOffsetPosition.x;
-					movable.y += headOffsetPosition.y;
-					movable.offset = new Point(0, 0);
-
-					tileManager.coordinateToMovable.remove(movable.coordinate);
-					movable.coordinate = new Point(movable.x / gamePanel.tileSize, movable.y / gamePanel.tileSize);
-					tileManager.coordinateToMovable.put(movable.coordinate, movable);
+					moveMovable(movable, headOffsetPosition);
 				}
 			}
 
 			headOffset -= gamePanel.deltaTime / (animationDuration / 2 * gamePanel.fps);
 
 			if (headOffset <= 0) {
+				// Only runs once, when pistons finished retracting
 				active = false;
 
-				// if (sticky) {
-				// 	tileManager.coordinateToMovable.remove(movable.coordinate);
-				// 	tileManager.coordinateToMovable.put(new Point(movable.x / gamePanel.tileSize, movable.y / gamePanel.tileSize), movable);
-				// }
+				if (sticky && movable != null) {
+					Point point = moveInDirection(-gamePanel.tileSize);
+					moveMovable(movable, point);
+				}
+			} else if (sticky && movable != null) {
+				movable.offset = moveInDirection(-(int)Math.ceil((1 - headOffset) * gamePanel.tileSize));
 			}
 
 			updateHeadPosition();
 		}
 	}
 
-	public Movable getMoveable(int distance) {
+	public Movable getMovable(int distance) {
 		Point offset = moveInDirection(gamePanel.tileSize * distance);
 		Point coordinate = new Point((x + offset.x) / gamePanel.tileSize, (y + offset.y) / gamePanel.tileSize);
 		Movable movable = tileManager.coordinateToMovable.get(coordinate);
 
 		return movable;
+	}
+
+	public void moveMovable(Movable movable, Point offset) {
+		movable.x += offset.x;
+		movable.y += offset.y;
+		movable.offset = new Point(0, 0);
+
+		tileManager.coordinateToMovable.remove(movable.coordinate);
+		movable.coordinate = new Point(movable.x / gamePanel.tileSize, movable.y / gamePanel.tileSize);
+		tileManager.coordinateToMovable.put(movable.coordinate, movable);
 	}
 
 	public void draw(Graphics2D graphics2D) {

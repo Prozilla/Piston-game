@@ -47,13 +47,17 @@ public class GamePanel extends JPanel implements Runnable {
 		this.setFocusable(true);
 
 		addMouseListener(new MouseAdapter() {
-			public void mouseClicked(MouseEvent event) {
-				Piston piston = mouseHandler.coordinateToPiston.get(mouseHandler.mouseCoordinate);
-				if (piston != null) {
-					piston.activate();
-				}
+			public void mousePressed(MouseEvent event) {
+				handleClick();
 			}
 		});
+	}
+
+	public void handleClick() {
+		Piston piston = mouseHandler.coordinateToPiston.get(mouseHandler.mouseCoordinate);
+		if (piston != null) {
+			piston.activate();
+		}
 	}
 
 	public void startGameThread() {
