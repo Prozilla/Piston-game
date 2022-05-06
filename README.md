@@ -19,9 +19,9 @@ What it looks like in-game:
 
 ![In-game screenshot of the level above](https://user-images.githubusercontent.com/63581117/167123795-9970f8f0-8a8a-405b-9841-70f904f74ab4.png)
 
-Every pair of 2 digits represents a tile, the first digit determines the tile type and the second digit its rotation.
+Every pair of digits represents a tile, the first digit determines the tile type and the second digit the rotation.
 
-Tile types:
+#### Tile types:
 
 0: background tile,
 1: foreground tile,
@@ -29,7 +29,7 @@ Tile types:
 3: sticky piston,
 4: movable tile
 
-Rotations:
+#### Rotations:
 
 0: up,
 1: right,
