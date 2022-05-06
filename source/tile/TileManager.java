@@ -24,6 +24,8 @@ public class TileManager {
 	final String foregroundTile = "stone_bricks";
 	final String movableTile = "red_wool";
 
+	final String tilesPath = "../../textures/tiles/";
+
 	GamePanel gamePanel;
 	Map<String, Tile> tiles;
 	int levelTiles[][];
@@ -57,7 +59,7 @@ public class TileManager {
 
 	public void addTile(String name, boolean collision, boolean movable, boolean background) {
 		try {
-			tiles.put(name, new Tile(name, ImageIO.read(getClass().getResourceAsStream(String.format("../../resources/tiles/%s.png", name))), collision, movable, background));
+			tiles.put(name, new Tile(name, ImageIO.read(getClass().getResourceAsStream(String.format("%s%s.png", tilesPath, name))), collision, movable, background));
 		} catch (IOException exception) {
 			exception.printStackTrace();
 		}
