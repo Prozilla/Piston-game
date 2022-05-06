@@ -4,6 +4,10 @@ This game was made with Java Swing.
 
 Normal pistons push blocks directly in front of them. Sticky pistons can both push and pull blocks.
 
+## Gameplay
+
+![Gameplay video](https://user-images.githubusercontent.com/63581117/167124423-1a601e8d-c983-4049-8ceb-695d79e169a4.gif)
+
 ## Levels
 Example level:
 
@@ -13,7 +17,7 @@ Example level:
 
 What it looks like in-game:
 
-![In-game screenshot of the level above](https://i.imgur.com/GDh58Kg.png)
+![In-game screenshot of the level above](https://user-images.githubusercontent.com/63581117/167123795-9970f8f0-8a8a-405b-9841-70f904f74ab4.png)
 
 Every pair of 2 digits represents a tile, the first digit determines the tile type and the second digit its rotation.
 
