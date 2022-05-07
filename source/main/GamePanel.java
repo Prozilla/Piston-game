@@ -15,9 +15,9 @@ import source.tile.TileManager;
 public class GamePanel extends JPanel implements Runnable {
 
 	// Screen settings
-	final int originalTileSize = 8;
+	final static int originalTileSize = 8;
 	public final static int pixelScale = 6;
-	public final int tileSize = originalTileSize * pixelScale;
+	public final static int tileSize = originalTileSize * pixelScale;
 
 	public final int verticalTiles = 10;
 	public final int horizontalTiles = 16;

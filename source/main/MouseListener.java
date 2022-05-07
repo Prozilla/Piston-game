@@ -26,7 +26,7 @@ public class MouseListener implements MouseMotionListener {
 	public MouseListener(GamePanel gamePanel, TileManager tileManager) {
 		this.gamePanel = gamePanel;
 		this.tileManager = tileManager;
-		tileSize = gamePanel.tileSize;
+		tileSize = GamePanel.tileSize;
 	}
 
 	@Override
@@ -37,7 +37,7 @@ public class MouseListener implements MouseMotionListener {
 	@Override
 	public void mouseMoved(MouseEvent event) {
 		Point point = event.getPoint();
-		Point coordinate = new Point(point.x / gamePanel.tileSize, point.y / gamePanel.tileSize);
+		Point coordinate = new Point(point.x / GamePanel.tileSize, point.y / GamePanel.tileSize);
 
 		if (mouseCoordinate.equals(coordinate))
 			return;

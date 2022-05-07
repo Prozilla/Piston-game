@@ -11,8 +11,13 @@ public class LevelManager {
 	
 	public static Level[] levels = new Level[]{
 		new Level("tutorial1", "stone", "stone_bricks", "red_wool", "target"),
-		new Level("level1", "cyan_concrete", "red_concrete", "yellow_concrete", "target"),
-		new Level("level1", "deepslate", "deepslate_top", "oak_log_top", "target"),
+		new Level("tutorial2", "stone", "stone_bricks", "red_wool", "target"),
+		new Level("tutorial3", "stone", "stone_bricks", "red_wool", "target"),
+		new Level("tutorial4", "stone", "stone_bricks", "red_wool", "target"),
+		new Level("level1", "stone", "stone_bricks", "red_wool", "target"),
+		new Level("level2", "cyan_concrete", "red_concrete", "yellow_concrete", "target"),
+		new Level("level3", "deepslate", "deepslate_top", "oak_log_top", "target"),
+		new Level("level2", "nether_bricks", "netherrack", "obsidian", "target"),
 	};
 
 	public LevelManager(TileManager tileManager) {
@@ -21,19 +26,19 @@ public class LevelManager {
 	}
 
 	public static void setLevel(int index) {
-		currentLevelIndex = index;
+		if (index >= levels.length) {
+			currentLevelIndex = 0;
+		} else {
+			currentLevelIndex = index;
+		}
+
 		currentLevel = levels[currentLevelIndex];
 
 		tileManager.loadLevel();
 	}
 
 	public static void nextLevel() {
-		currentLevelIndex++;
-
-		if (currentLevelIndex == levels.length)
-			currentLevelIndex = 0;
-
-		setLevel(currentLevelIndex);
+		setLevel(currentLevelIndex + 1);
 	}
 
 }

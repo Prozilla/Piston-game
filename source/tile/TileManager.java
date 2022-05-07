@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
+
 import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -23,6 +25,10 @@ import source.level.LevelManager;
 public class TileManager {
 
 	final String tilesPath = "../../textures/tiles/";
+	final Color backgroundShadow = new Color(0.15f, 0.15f, 0.15f, 0.35f);
+
+	// Debugging
+	boolean showPistonCoordinates = false;
 
 	GamePanel gamePanel;
 
@@ -37,6 +43,11 @@ public class TileManager {
 
 	public TileManager(GamePanel gamePanel) {
 		this.gamePanel = gamePanel;
+	}
+
+	public static Point positionToCoordinate(Point position) {
+		Point coordinate = new Point(position.x / GamePanel.tileSize, position.y / GamePanel.tileSize);
+		return coordinate;
 	}
 
 	public void addTiles() {
@@ -81,27 +92,60 @@ public class TileManager {
 			InputStream inputStream = getClass().getResourceAsStream(String.format("../../levels/%s.txt", LevelManager.currentLevel.name));
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
+			String line = bufferedReader.readLine();
+			int lineCount = 0;
+
+			while (line != null && line.length() > 0) {
+				lineCount++;
+				line = bufferedReader.readLine();
+			}
+
+			inputStream = getClass().getResourceAsStream(String.format("../../levels/%s.txt", LevelManager.currentLevel.name));
+			bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+
 			int column = 0;
 			int row = 0;
 
-			while(column < gamePanel.horizontalTiles && row < gamePanel.verticalTiles) {
-				String line = bufferedReader.readLine();
+			line = null;
+			for (int i = 0; i < gamePanel.verticalTiles; i++) {
+				// Align level vertically
+				int rowIndex = i - (gamePanel.verticalTiles - lineCount) / 2;
 
-				while (column < gamePanel.horizontalTiles) {
-					String numbers[] = line.split(" ");
+				if (0 <= rowIndex && rowIndex < lineCount) {
+					line = bufferedReader.readLine();
+				} else {
+					line = "10 ".repeat(gamePanel.horizontalTiles);
+				}
 
-					int number = Integer.parseInt(String.valueOf(numbers[column].charAt(0)));
-					int direction = Integer.parseInt(String.valueOf(numbers[column].charAt(1)));
+				// Replace invalid lines and log error
+				if (!Pattern.matches("^([0-9][0-3] )+([0-9][0-3] ?)$", line)) {
+					System.err.println(String.format("An error occurred while loading %s.txt at line %s \nContinuing without the invalid line", LevelManager.currentLevel.name, rowIndex + 1));
+					line = "10 ".repeat(gamePanel.horizontalTiles);
+				}
+
+				String numbers[] = line.split(" ");
+
+				for (int j = 0; j < gamePanel.horizontalTiles; j++) {
+					int number = 0;
+					int direction = 0;
+
+					// Align level horizontally
+					int columnIndex = j - (gamePanel.horizontalTiles - numbers.length) / 2;
+
+					if (0 <= columnIndex && columnIndex < numbers.length) {
+						number = Integer.parseInt(String.valueOf(numbers[columnIndex].charAt(0)));
+						direction = Integer.parseInt(String.valueOf(numbers[columnIndex].charAt(1)));
+					} else {
+						number = 1;
+					}
 
 					levelTiles[column][row] = number;
 					levelTilesDirections[column][row] = direction;
 					column++;
 				}
 
-				if (column == gamePanel.horizontalTiles) {
-					column = 0;
-					row++;
-				}
+				column = 0;
+				row++;
 			}
 
 			bufferedReader.close();
@@ -120,7 +164,7 @@ public class TileManager {
 		Level level = LevelManager.currentLevel;
 
 		while(column < gamePanel.horizontalTiles && row < gamePanel.verticalTiles) {
-			Point coordinate = new Point(x / gamePanel.tileSize, y / gamePanel.tileSize);
+			Point coordinate = new Point(x / GamePanel.tileSize, y / GamePanel.tileSize);
 			int tileNumber = levelTiles[column][row];
 			int tileDirection = levelTilesDirections[column][row];
 			String tileName;
@@ -150,6 +194,11 @@ public class TileManager {
 
 			Tile tile = tiles.get(tileName);
 			drawTile(graphics2D, tiles.get(LevelManager.currentLevel.backgroundTile).sprite, true, x, y);
+
+			if (coordinateToMovable.containsKey(coordinate) && showPistonCoordinates) {
+				graphics2D.setColor(Color.red);
+				graphics2D.fillRect(x, y, GamePanel.tileSize, GamePanel.tileSize);
+			}
 
 			if (tileName == "piston" || tileName == "sticky_piston") {
 				String direction;
@@ -201,14 +250,14 @@ public class TileManager {
 			}
 
 			column++;
-			x += gamePanel.tileSize;
+			x += GamePanel.tileSize;
 
 			if (column == gamePanel.horizontalTiles) {
 				column = 0;
 				x = 0;
 
 				row++;
-				y += gamePanel.tileSize;
+				y += GamePanel.tileSize;
 			}
 		}
 
@@ -221,11 +270,11 @@ public class TileManager {
 
 	// TO DO: implement random rotation
 	public void drawTile(Graphics2D graphics2D, BufferedImage sprite, boolean background, int x, int y) {
-		graphics2D.drawImage(sprite, x, y, gamePanel.tileSize, gamePanel.tileSize, null);
+		graphics2D.drawImage(sprite, x, y, GamePanel.tileSize, GamePanel.tileSize, null);
 
 		if (background) {
-			graphics2D.setColor(new Color(0.2f, 0.2f, 0.2f, 0.50f));
-			graphics2D.fillRect(x, y, gamePanel.tileSize, gamePanel.tileSize);
+			graphics2D.setColor(backgroundShadow);
+			graphics2D.fillRect(x, y, GamePanel.tileSize, GamePanel.tileSize);
 		}
 	}
 

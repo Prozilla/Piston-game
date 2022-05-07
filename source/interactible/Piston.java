@@ -13,10 +13,12 @@ import source.tile.TileManager;
 public class Piston extends Interactible {
 
 	final int borderWidth = 3;
-	final float animationDuration = 0.2f;
+	final float animationDuration = 0.3f;
+	final float animationPause = 0.1f;
 
 	Point headOffsetPosition = new Point(0, 0);
 	float headOffset = 0;
+	float timeBeforeExtension;
 	boolean sticky = false;
 
 	GamePanel gamePanel;
@@ -42,6 +44,21 @@ public class Piston extends Interactible {
 	}
 
 	public void activate() {
+		if (active)
+			return;
+
+		Point firstPoint = moveInDirection(GamePanel.tileSize);
+		Point secondPoint = moveInDirection(GamePanel.tileSize * 2);
+
+		firstPoint = new Point(x + firstPoint.x, y + firstPoint.y);
+		secondPoint = new Point(x + secondPoint.x, y + secondPoint.y);
+
+		Point firstCoordinate = TileManager.positionToCoordinate(firstPoint);
+		Point secondCoordinate = TileManager.positionToCoordinate(secondPoint);
+
+		if (tileManager.coordinateToMovable.containsKey(firstCoordinate) && tileManager.coordinateToMovable.containsKey(secondCoordinate))
+			return;
+
 		active = true;
 
 		state = "extending";
@@ -51,7 +68,7 @@ public class Piston extends Interactible {
 	}
 
 	public void updateHeadPosition() {
-		int offset = (int)Math.ceil(headOffset * gamePanel.tileSize);
+		int offset = (int)Math.ceil(headOffset * GamePanel.tileSize);
 		headOffsetPosition = moveInDirection(offset);
 	}
 
@@ -80,24 +97,44 @@ public class Piston extends Interactible {
 		Movable movable = getMovable(state == "retracting" && sticky ? 2 : 1);
 
 		if (headOffset < 1 && state == "extending") {
+			if (headOffset == 0 && movable != null) {
+				// Only runs once if movable is not null, when piston starts extending
+				movable.piston = this;
+			}
+
 			headOffset += gamePanel.deltaTime / (animationDuration / 2 * gamePanel.fps);
 
-			if (headOffset > 1)
+			if (headOffset >= 1) {
+				// Only runs once, when pistons finished extending
 				headOffset = 1;
 
-			updateHeadPosition();
+				updateHeadPosition();
 
-			if (movable != null) {
-				movable.offset = headOffsetPosition;
+				if (movable != null)
+					moveMovable(movable, headOffsetPosition);
+
+				if (sticky) {
+					timeBeforeExtension = animationPause;
+					state = "holding";
+				}
+			} else {
+				updateHeadPosition();
+
+				if (movable != null) {
+					movable.offset = headOffsetPosition;
+				}
 			}
+		} else if (state == "holding" && timeBeforeExtension > 0) {
+			timeBeforeExtension -= gamePanel.deltaTime / gamePanel.fps;
 		} else {
 			if (state != "retracting") {
 				// Only runs once, when pistons starts retracting
 				state = "retracting";
 
-				if (movable != null) {
-					moveMovable(movable, headOffsetPosition);
-				}
+				movable = getMovable(2);
+
+				if (sticky && movable != null && movable.piston == null)
+					movable.piston = this;
 			}
 
 			headOffset -= gamePanel.deltaTime / (animationDuration / 2 * gamePanel.fps);
@@ -106,12 +143,13 @@ public class Piston extends Interactible {
 				// Only runs once, when pistons finished retracting
 				active = false;
 
-				if (sticky && movable != null) {
-					Point point = moveInDirection(-gamePanel.tileSize);
+				if (sticky && movable != null && movable.piston == this) {
+					Point point = moveInDirection(-GamePanel.tileSize);
 					moveMovable(movable, point);
+					movable.piston = null;
 				}
-			} else if (sticky && movable != null) {
-				movable.offset = moveInDirection(-(int)Math.ceil((1 - headOffset) * gamePanel.tileSize));
+			} else if (sticky && movable != null && movable.piston == this) {
+				movable.offset = moveInDirection(-(int)Math.ceil((1 - headOffset) * GamePanel.tileSize));
 			}
 
 			updateHeadPosition();
@@ -119,8 +157,8 @@ public class Piston extends Interactible {
 	}
 
 	public Movable getMovable(int distance) {
-		Point offset = moveInDirection(gamePanel.tileSize * distance);
-		Point coordinate = new Point((x + offset.x) / gamePanel.tileSize, (y + offset.y) / gamePanel.tileSize);
+		Point offset = moveInDirection(GamePanel.tileSize * distance);
+		Point coordinate = TileManager.positionToCoordinate(new Point((x + offset.x), (y + offset.y)));
 		Movable movable = tileManager.coordinateToMovable.get(coordinate);
 
 		return movable;
@@ -130,9 +168,10 @@ public class Piston extends Interactible {
 		movable.x += offset.x;
 		movable.y += offset.y;
 		movable.offset = new Point(0, 0);
+		movable.piston = null;
 
 		tileManager.coordinateToMovable.remove(movable.coordinate);
-		movable.coordinate = new Point(movable.x / gamePanel.tileSize, movable.y / gamePanel.tileSize);
+		movable.coordinate = TileManager.positionToCoordinate(new Point(movable.x, movable.y));
 		tileManager.coordinateToMovable.put(movable.coordinate, movable);
 
 		if (tileManager.targetCoordinates.contains(movable.coordinate)) {
@@ -162,18 +201,18 @@ public class Piston extends Interactible {
 			// Draw border when hovering
 			// if (MouseListener.hoveringTile(x, y)) {
 			// 	graphics2D.setColor(Color.white);
-			// 	graphics2D.fillRect(x - borderWidth, y - borderWidth, gamePanel.tileSize + borderWidth * 2, gamePanel.tileSize + borderWidth * 2);
+			// 	graphics2D.fillRect(x - borderWidth, y - borderWidth, GamePanel.tileSize + borderWidth * 2, GamePanel.tileSize + borderWidth * 2);
 			// }
 
-			graphics2D.drawImage(rotateImage(sprite, rotation), x, y, gamePanel.tileSize, gamePanel.tileSize, null);
+			graphics2D.drawImage(rotateImage(sprite, rotation), x, y, GamePanel.tileSize, GamePanel.tileSize, null);
 		} else {
 			if (headOffset > 0.8) {
-				Point headExtensionOffset = moveInDirection(-gamePanel.tileSize);
-				graphics2D.drawImage(rotateImage(splitSprite[2], rotation), x + headOffsetPosition.x + headExtensionOffset.x, y + headOffsetPosition.y + headExtensionOffset.y, gamePanel.tileSize, gamePanel.tileSize, null);
+				Point headExtensionOffset = moveInDirection(-GamePanel.tileSize);
+				graphics2D.drawImage(rotateImage(splitSprite[2], rotation), x + headOffsetPosition.x + headExtensionOffset.x, y + headOffsetPosition.y + headExtensionOffset.y, GamePanel.tileSize, GamePanel.tileSize, null);
 			}
 
-			graphics2D.drawImage(rotateImage(splitSprite[1], rotation), x + headOffsetPosition.x, y + headOffsetPosition.y, gamePanel.tileSize, gamePanel.tileSize, null);
-			graphics2D.drawImage(rotateImage(splitSprite[0], rotation), x, y, gamePanel.tileSize, gamePanel.tileSize, null);
+			graphics2D.drawImage(rotateImage(splitSprite[1], rotation), x + headOffsetPosition.x, y + headOffsetPosition.y, GamePanel.tileSize, GamePanel.tileSize, null);
+			graphics2D.drawImage(rotateImage(splitSprite[0], rotation), x, y, GamePanel.tileSize, GamePanel.tileSize, null);
 		}
 	}
 
