@@ -19,8 +19,8 @@ public class GamePanel extends JPanel implements Runnable {
 	public final static int pixelScale = 6;
 	public final static int tileSize = originalTileSize * pixelScale;
 
-	public final int verticalTiles = 10;
 	public final int horizontalTiles = 16;
+	public final int verticalTiles = 10;
 
 	// Window settings
 	final int width = horizontalTiles * tileSize;
