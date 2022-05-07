@@ -9,14 +9,15 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import source.interactible.Piston;
+import source.level.LevelManager;
 import source.tile.TileManager;
 
 public class GamePanel extends JPanel implements Runnable {
 
 	// Screen settings
 	final int originalTileSize = 8;
-	public final int scale = 6;
-	public final int tileSize = originalTileSize * scale;
+	public final static int pixelScale = 6;
+	public final int tileSize = originalTileSize * pixelScale;
 
 	public final int verticalTiles = 10;
 	public final int horizontalTiles = 16;
@@ -29,14 +30,10 @@ public class GamePanel extends JPanel implements Runnable {
 	public double deltaTime = 0;
 
 	TileManager tileManager = new TileManager(this);
+	LevelManager levelManager = new LevelManager(tileManager);
 	KeyHandler keyHandler = new KeyHandler();
 	Thread gameThread;
-	// Player player = new Player(this, keyHandler);
 	MouseListener mouseHandler = new MouseListener(this, tileManager);
-
-	int playerX = 100;
-	int playerY = 100;
-	int playerSpeed = 4;
 
 	public GamePanel() {
 		this.setPreferredSize(new Dimension(width, height));
@@ -54,7 +51,7 @@ public class GamePanel extends JPanel implements Runnable {
 	}
 
 	public void handleClick() {
-		Piston piston = mouseHandler.coordinateToPiston.get(mouseHandler.mouseCoordinate);
+		Piston piston = MouseListener.coordinateToPiston.get(MouseListener.mouseCoordinate);
 		if (piston != null) {
 			piston.activate();
 		}
@@ -85,7 +82,6 @@ public class GamePanel extends JPanel implements Runnable {
 
 			if (delta >= 1) {
 				deltaTime = delta;
-				// System.out.println(deltaTime);
 
 				update();
 				repaint();
@@ -95,7 +91,6 @@ public class GamePanel extends JPanel implements Runnable {
 			}
 
 			if (timer >= 1000000000) {
-				// System.out.println("FPS: " + drawCount);
 				drawCount = 0;
 				timer = 0;
 			}
@@ -112,8 +107,6 @@ public class GamePanel extends JPanel implements Runnable {
 		Graphics2D graphics2D = (Graphics2D)graphics;
 
 		tileManager.draw(graphics2D);
-		// player.draw(graphics2D);
-		// mouseHandler.draw(graphics2D);
 
 		graphics2D.dispose();
 	}

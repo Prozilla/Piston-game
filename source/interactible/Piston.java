@@ -6,6 +6,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.Point;
 
+import source.level.LevelManager;
 import source.main.GamePanel;
 import source.tile.TileManager;
 
@@ -133,6 +134,10 @@ public class Piston extends Interactible {
 		tileManager.coordinateToMovable.remove(movable.coordinate);
 		movable.coordinate = new Point(movable.x / gamePanel.tileSize, movable.y / gamePanel.tileSize);
 		tileManager.coordinateToMovable.put(movable.coordinate, movable);
+
+		if (tileManager.targetCoordinates.contains(movable.coordinate)) {
+			LevelManager.nextLevel();
+		}
 	}
 
 	public void draw(Graphics2D graphics2D) {
@@ -162,6 +167,11 @@ public class Piston extends Interactible {
 
 			graphics2D.drawImage(rotateImage(sprite, rotation), x, y, gamePanel.tileSize, gamePanel.tileSize, null);
 		} else {
+			if (headOffset > 0.8) {
+				Point headExtensionOffset = moveInDirection(-gamePanel.tileSize);
+				graphics2D.drawImage(rotateImage(splitSprite[2], rotation), x + headOffsetPosition.x + headExtensionOffset.x, y + headOffsetPosition.y + headExtensionOffset.y, gamePanel.tileSize, gamePanel.tileSize, null);
+			}
+
 			graphics2D.drawImage(rotateImage(splitSprite[1], rotation), x + headOffsetPosition.x, y + headOffsetPosition.y, gamePanel.tileSize, gamePanel.tileSize, null);
 			graphics2D.drawImage(rotateImage(splitSprite[0], rotation), x, y, gamePanel.tileSize, gamePanel.tileSize, null);
 		}

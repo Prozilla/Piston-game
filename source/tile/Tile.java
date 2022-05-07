@@ -3,6 +3,7 @@ package source.tile;
 import java.awt.image.BufferedImage;
 
 public class Tile {
+
 	public String name;
 	public BufferedImage sprite;
 	public boolean collision;
@@ -16,4 +17,5 @@ public class Tile {
 		this.movable = movable;
 		this.background = background;
 	}
+	
 }

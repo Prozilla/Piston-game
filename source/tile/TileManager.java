@@ -17,42 +17,39 @@ import source.main.GamePanel;
 import source.main.MouseListener;
 import source.interactible.Movable;
 import source.interactible.Piston;
+import source.level.Level;
+import source.level.LevelManager;
 
 public class TileManager {
-
-	final String backgroundTile = "stone";
-	final String foregroundTile = "stone_bricks";
-	final String movableTile = "red_wool";
 
 	final String tilesPath = "../../textures/tiles/";
 
 	GamePanel gamePanel;
+
 	Map<String, Tile> tiles;
 	int levelTiles[][];
 	int levelTilesDirections[][];
-	boolean generatedTiles = false;
+	boolean generatedTiles;
 
-	public ArrayList<Piston> pistons = new ArrayList<Piston>();
-	public Map<Point, Movable> coordinateToMovable = new HashMap<Point, Movable>();
+	public ArrayList<Piston> pistons;
+	public Map<Point, Movable> coordinateToMovable;
+	public ArrayList<Point> targetCoordinates;
 
 	public TileManager(GamePanel gamePanel) {
 		this.gamePanel = gamePanel;
-
-		tiles = new HashMap<String, Tile>();
-		levelTiles = new int[gamePanel.horizontalTiles][gamePanel.verticalTiles];
-		levelTilesDirections = new int[gamePanel.horizontalTiles][gamePanel.verticalTiles];
-
-		addTiles();
-		loadLevel();
 	}
 
 	public void addTiles() {
-		addTile(backgroundTile, false, false, true);
-		addTile(foregroundTile, true, false, false);
-		addTile(movableTile, true, true, false);
+		tiles = new HashMap<String, Tile>();
+
+		addTile(LevelManager.currentLevel.backgroundTile, false, false, true);
+		addTile(LevelManager.currentLevel.foregroundTile, true, false, false);
+		addTile(LevelManager.currentLevel.movableTile, true, true, false);
+		addTile(LevelManager.currentLevel.targetTile, false, false, true);
 		addTile("piston", true, false, false);
 		addTile("piston_body", true, false, false);
 		addTile("piston_head", true, false, false);
+		addTile("piston_head_extension", true, false, false);
 		addTile("sticky_piston", true, false, false);
 		addTile("sticky_piston_head", true, false, false);
 	}
@@ -61,13 +58,27 @@ public class TileManager {
 		try {
 			tiles.put(name, new Tile(name, ImageIO.read(getClass().getResourceAsStream(String.format("%s%s.png", tilesPath, name))), collision, movable, background));
 		} catch (IOException exception) {
+			// System.out.println("Invalid image path: " + String.format("%s%s.png", tilesPath, name));
 			exception.printStackTrace();
 		}
 	}
 
 	public void loadLevel() {
+		addTiles();
+
+		levelTiles = new int[gamePanel.horizontalTiles][gamePanel.verticalTiles];
+		levelTilesDirections = new int[gamePanel.horizontalTiles][gamePanel.verticalTiles];
+
+		pistons = new ArrayList<Piston>();
+		coordinateToMovable = new HashMap<Point, Movable>();
+		targetCoordinates = new ArrayList<Point>();
+
+		MouseListener.coordinateToPiston = new HashMap<Point, Piston>();
+
+		generatedTiles = false;
+
 		try {
-			InputStream inputStream = getClass().getResourceAsStream("../../levels/level1.txt");
+			InputStream inputStream = getClass().getResourceAsStream(String.format("../../levels/%s.txt", LevelManager.currentLevel.name));
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
 			int column = 0;
@@ -106,6 +117,8 @@ public class TileManager {
 		int x = 0;
 		int y = 0;
 
+		Level level = LevelManager.currentLevel;
+
 		while(column < gamePanel.horizontalTiles && row < gamePanel.verticalTiles) {
 			Point coordinate = new Point(x / gamePanel.tileSize, y / gamePanel.tileSize);
 			int tileNumber = levelTiles[column][row];
@@ -114,10 +127,10 @@ public class TileManager {
 
 			switch (tileNumber) {
 				case 0:
-					tileName = backgroundTile;
+					tileName = LevelManager.currentLevel.backgroundTile;
 					break;
 				case 1:
-					tileName = foregroundTile;
+					tileName = LevelManager.currentLevel.foregroundTile;
 					break;
 				case 2:
 					tileName = "piston";
@@ -126,17 +139,17 @@ public class TileManager {
 					tileName = "sticky_piston";
 					break;
 				case 4:
-					tileName = movableTile;
+					tileName = LevelManager.currentLevel.movableTile;
+					break;
+				case 5:
+					tileName = LevelManager.currentLevel.targetTile;
 					break;
 				default:
-					tileName = backgroundTile;
+					tileName = LevelManager.currentLevel.backgroundTile;
 			}
 
 			Tile tile = tiles.get(tileName);
-			drawTile(graphics2D, tiles.get(backgroundTile).sprite, true, x, y);
-
-			// if (tileName == backgroundTile)
-			// 	continue;
+			drawTile(graphics2D, tiles.get(LevelManager.currentLevel.backgroundTile).sprite, true, x, y);
 
 			if (tileName == "piston" || tileName == "sticky_piston") {
 				String direction;
@@ -162,21 +175,27 @@ public class TileManager {
 					Piston piston = new Piston(gamePanel, this, x, y, direction, tile.sprite, sticky);
 
 					if (!sticky) {
-						piston.splitSprite = new BufferedImage[]{tiles.get("piston_body").sprite, tiles.get("piston_head").sprite};
+						piston.splitSprite = new BufferedImage[]{tiles.get("piston_body").sprite, tiles.get("piston_head").sprite, tiles.get("piston_head_extension").sprite};
 					} else {
-						piston.splitSprite = new BufferedImage[]{tiles.get("piston_body").sprite, tiles.get("sticky_piston_head").sprite};
+						piston.splitSprite = new BufferedImage[]{tiles.get("piston_body").sprite, tiles.get("sticky_piston_head").sprite, tiles.get("piston_head_extension").sprite};
 					}
 
 					pistons.add(piston);
 					MouseListener.coordinateToPiston.put(coordinate, piston);
 				}
-			} else if (tile.name == movableTile || coordinateToMovable.containsKey(coordinate)) {
+			} else if (tile.name == LevelManager.currentLevel.movableTile || coordinateToMovable.containsKey(coordinate)) {
 				Movable movable = coordinateToMovable.get(coordinate);
 
 				if (!generatedTiles && movable == null) {
 					movable = new Movable(gamePanel, x, y, tile.sprite);
 					coordinateToMovable.put(coordinate, movable);
 				}
+			} else if (tile.name == LevelManager.currentLevel.targetTile) {
+				if (!targetCoordinates.contains(coordinate)) {
+					targetCoordinates.add(coordinate);
+				}
+
+				drawTile(graphics2D, tile.sprite, tile.background, x, y);
 			} else {
 				drawTile(graphics2D, tile.sprite, tile.background, x, y);
 			}
@@ -195,7 +214,9 @@ public class TileManager {
 
 		drawPistons(graphics2D);
 		drawMovables(graphics2D);
-		generatedTiles = true;
+
+		if (level == LevelManager.currentLevel)
+			generatedTiles = true;
 	}
 
 	// TO DO: implement random rotation
@@ -203,7 +224,7 @@ public class TileManager {
 		graphics2D.drawImage(sprite, x, y, gamePanel.tileSize, gamePanel.tileSize, null);
 
 		if (background) {
-			graphics2D.setColor(new Color(0.2f, 0.2f, 0.2f, 0.40f));
+			graphics2D.setColor(new Color(0.2f, 0.2f, 0.2f, 0.50f));
 			graphics2D.fillRect(x, y, gamePanel.tileSize, gamePanel.tileSize);
 		}
 	}

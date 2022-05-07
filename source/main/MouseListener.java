@@ -1,7 +1,6 @@
 package source.main;
 
 import java.awt.event.MouseMotionListener;
-import java.util.HashMap;
 import java.util.Map;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
@@ -13,6 +12,7 @@ import source.interactible.Piston;
 import source.tile.TileManager;
 
 public class MouseListener implements MouseMotionListener {
+
 	GamePanel gamePanel;
 	TileManager tileManager;
 
@@ -21,7 +21,7 @@ public class MouseListener implements MouseMotionListener {
 	public static Point mousePosition = new Point(0, 0);
 	public static Point mouseCoordinate = new Point(0, 0);
 
-	public static Map<Point, Piston> coordinateToPiston = new HashMap<Point, Piston>();
+	public static Map<Point, Piston> coordinateToPiston;
 
 	public MouseListener(GamePanel gamePanel, TileManager tileManager) {
 		this.gamePanel = gamePanel;
@@ -31,8 +31,7 @@ public class MouseListener implements MouseMotionListener {
 
 	@Override
 	public void mouseDragged(MouseEvent event) {
-		// System.out.println("Drag");
-		// gamePanel.handleClick();
+
 	}
 
 	@Override
@@ -45,8 +44,6 @@ public class MouseListener implements MouseMotionListener {
 
 		mousePosition = point;
 		mouseCoordinate = coordinate;
-
-		// System.out.println(mousePosition);
 
 		updateCursor();
 	}
@@ -71,4 +68,5 @@ public class MouseListener implements MouseMotionListener {
 			Main.frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		}
 	}
+	
 }

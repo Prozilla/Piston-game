@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import source.main.GamePanel;
 
 public class Movable extends Interactible {
+
 	Point offset = new Point(0, 0);
 	public Point coordinate = new Point(0, 0);
 
@@ -23,4 +24,5 @@ public class Movable extends Interactible {
 	public void draw(Graphics2D graphics2D) {
 		graphics2D.drawImage(sprite, x + offset.x, y + offset.y, gamePanel.tileSize, gamePanel.tileSize, null);
 	}
+	
 }
