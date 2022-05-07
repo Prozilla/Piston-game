@@ -6,7 +6,7 @@ Normal pistons push blocks directly in front of them. Sticky pistons can both pu
 
 ## Gameplay
 
-![Gameplay video](https://user-images.githubusercontent.com/63581117/167124423-1a601e8d-c983-4049-8ceb-695d79e169a4.gif)
+https://user-images.githubusercontent.com/63581117/167256516-d3a29d91-910b-43fb-816b-10279da16466.mp4
 
 ## Levels
 Example level:
@@ -37,4 +37,6 @@ Every pair of digits represents a tile, the first digit determines the tile type
 3: left
 
 ## To do
-- Improve game loop
+- Add long pistons
+- Add rotators
+- Add gates
